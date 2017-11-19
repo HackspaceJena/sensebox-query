@@ -1,0 +1,17 @@
+#!/bin/bash
+
+declare -r URL="https://api.opensensemap.org/boxes/59d7de4c66f66a0010797868/sensors"
+declare -r TMPFILE="/tmp/sense-data"
+
+curl --silent "$URL" | tr '{[,' "\n" > "$TMPFILE"
+
+RAW_VALUES="$(grep -e "title" -e "unit" -e "value" -e "createdAt" "$TMPFILE" | cut -d'"' -f4)"
+
+IFS=$'\n' RAW_VALUES=(${RAW_VALUES})
+
+declare -a VALUES
+for i in {1..5}; do
+    raw_index=$(( $i * 4 - 4 ))
+    VALUES[$i]="${RAW_VALUES[$raw_index]}:\t${RAW_VALUES[$raw_index + 2]} ${RAW_VALUES[$raw_index + 1]}\t(as of: ${RAW_VALUES[$raw_index + 3]})"
+    echo -e "${VALUES[$i]}"
+done

@@ -1,0 +1,16 @@
+* sensebox-query
+
+A little Bash script for querying the Sensebox installed at Krautspace.
+
+There are still some things to do, feel free to contribute code to solve
+these issues.
+
+*TODO:*
+- make output to shell prettier
+  - use conditional coloring, e.g. cold -> blue, warm -> red
+  - use ASCII art
+  - format date
+- deal with errors
+  - curl might not be installed
+  - curl might fail (e.g. no connection)
+  - grep might not find anything
