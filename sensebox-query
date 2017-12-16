@@ -6,11 +6,12 @@ declare -r TMPFILE="/tmp/sense-data"
 curl --silent "$URL" | tr '{[,' "\n" > "$TMPFILE"
 
 RAW_VALUES="$(grep -e "title" -e "unit" -e "value" -e "createdAt" "$TMPFILE" | cut -d'"' -f4)"
+VALUECOUNT=$(grep -c "title" "$TMPFILE")
 
 IFS=$'\n' RAW_VALUES=(${RAW_VALUES})
 
 declare -a VALUES
-for i in {1..5}; do
+for i in $(seq 1 $VALUECOUNT); do
     raw_index=$(( $i * 4 - 4 ))
     VALUES[$i]="${RAW_VALUES[$raw_index]}:\t${RAW_VALUES[$raw_index + 2]} ${RAW_VALUES[$raw_index + 1]}\t(as of: ${RAW_VALUES[$raw_index + 3]})"
     echo -e "${VALUES[$i]}"
