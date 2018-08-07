@@ -1,18 +1,21 @@
 #!/bin/bash
 
-declare -r URL="https://api.opensensemap.org/boxes/59d7de4c66f66a0010797868/sensors"
-declare -r TMPFILE="/tmp/sense-data"
+function get_data {
+    local -r URL="https://api.opensensemap.org/boxes/59d7de4c66f66a0010797868/sensors"
+    local JSON="$(curl --silent "$URL" | tr '{[,' "\n")"
 
-curl --silent "$URL" | tr '{[,' "\n" > "$TMPFILE"
+    echo "$JSON" | grep -e "title" -e "unit" -e "value" -e "createdAt" | cut -d'"' -f4
+}
 
-RAW_VALUES="$(grep -e "title" -e "unit" -e "value" -e "createdAt" "$TMPFILE" | cut -d'"' -f4)"
-VALUECOUNT=$(grep -c "title" "$TMPFILE")
+function print_table {
+    while mapfile -n 4 -t line && ((${#line[@]})); do
+        # parse timestamp with date
+        line[3]="$(date --date="${line[3]}")"
+        # join lines with |
+        { local IFS='|'; echo "${line[*]}"; }
+    done | column \
+        --table --separator='|'  --table-columns="Measurement,Unit,Value,Date" \
+        --table-order="1,3,2,4" --table-right="Value"
+}
 
-IFS=$'\n' RAW_VALUES=(${RAW_VALUES})
-
-declare -a VALUES
-for i in $(seq 1 $VALUECOUNT); do
-    raw_index=$(( $i * 4 - 4 ))
-    VALUES[$i]="${RAW_VALUES[$raw_index]}:\t${RAW_VALUES[$raw_index + 2]} ${RAW_VALUES[$raw_index + 1]}\t(as of: ${RAW_VALUES[$raw_index + 3]})"
-    echo -e "${VALUES[$i]}"
-done
+get_data | print_table
